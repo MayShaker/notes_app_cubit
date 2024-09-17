@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:notes_app/features/authentication/models/signup_request_model.dart';
 import '../state_mangament/signup/signup_cubit.dart';
-import '../state_mangament/signup/signup_state.dart'; 
+import '../state_mangament/signup/signup_state.dart';
 
 class SignUpPage extends StatelessWidget {
   final TextEditingController firstNameController = TextEditingController();
@@ -13,32 +12,31 @@ class SignUpPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/background1.jfif'),
-                fit: BoxFit.cover,
+      body: BlocConsumer<SignUpCubit, SignUpState>(
+        listener: (context, state) {
+          if (state is SignUpSuccess) {
+           //navigation
+          } else if (state is SignUpError) {
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
+          }
+        },
+        builder: (context, state) {
+          return Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('assets/background1.jfif'),
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: BlocConsumer<SignUpCubit, SignUpState>(
-              listener: (context, state) {
-                if (state is SignUpSuccess) {
-                  // Handle navigation or show a success message
-                  Navigator.pushNamed(context, '/home');
-                } else if (state is SignUpError) {
-                  // Show error message
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.message)),
-                  );
-                }
-              },
-              builder: (context, state) {
-                return Column(
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
                   children: [
                     Expanded(
                       child: Center(
@@ -85,8 +83,7 @@ class SignUpPage extends StatelessWidget {
                                   SizedBox(height: 30),
                                   ElevatedButton(
                                     onPressed: () {
-                                      final cubit = context.read<SignUpCubit>();
-                                      cubit.signUp(
+                                      context.read<SignUpCubit>().signUp(
                                         firstNameController.text,
                                         lastNameController.text,
                                         emailController.text,
@@ -111,7 +108,7 @@ class SignUpPage extends StatelessWidget {
                                       Navigator.pushNamed(context, '/login');
                                     },
                                     child: Text(
-                                      'Already have an account?',
+                                      'Already have an account? ',
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 16,
@@ -138,16 +135,12 @@ class SignUpPage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (state is SignUpLoading)
-                      Center(
-                        child: CircularProgressIndicator(),
-                      ),
                   ],
-                );
-              },
-            ),
-          ),
-        ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
