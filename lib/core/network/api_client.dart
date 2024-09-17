@@ -19,7 +19,7 @@ class ApiClient {
       receiveTimeout: Duration(milliseconds: 3000),
       headers: {
         'Content-Type': 'application/json',
-        'Accept-Language': 'en', // Replace with dynamic locale if needed
+        'Accept-Language': 'en', 
       },
     );
 

@@ -1,4 +1,3 @@
-/// General Response Model to handle API responses
 class ResponseModel<T> {
   final int statusCode;
   final String message;
