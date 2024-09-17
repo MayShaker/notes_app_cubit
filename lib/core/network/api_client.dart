@@ -1,112 +1,111 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:logger/logger.dart';
+
+
+import 'package:dio/dio.dart';
+import 'package:logging/logging.dart';
 
 import '../../features/authentication/models/response_model.dart';
 import '../shared_pref.dart';
 
-/// API Client service for network requests using Dio and Hive-based SharedPrefsManager
 class ApiClient {
   static Dio _dio = Dio();
-  static bool enableNetworkLogs = true;
-  static Logger logger = Logger();
+  static bool enableNetworkLog = true;
+  static Logger logger = Logger('ApiClient');
+  static String baseUrl= 'https://my-notes-app-apis.onrender.com/api';
 
-  /// Initializes Dio with default configurations (base options like headers)
+  static void setDio(Dio dio) {
+    _dio = dio;
+  }
+
+  // 1- initDio Method
   static void initDio() {
+    // Set default options for every request
     _dio.options = BaseOptions(
-      baseUrl: "/api/auth https://my-notes-app-apis.onrender.com/api",
-      connectTimeout: Duration(milliseconds: 5000),
-      receiveTimeout: Duration(milliseconds: 3000),
+      connectTimeout: Duration(seconds: 10),
+      receiveTimeout: Duration(seconds: 10),
       headers: {
         'Content-Type': 'application/json',
-        'Accept-Language': 'en', 
+        'Accept-Language': 'en',
       },
     );
 
-    // Add interceptors for token handling and logging
-    _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        // Retrieve access token from Hive storage
-        String? accessToken = await SharedPrefsManager.getAccessToken();
+    // 2- Interceptors
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          String? accessToken = await SharedPrefsManager.getAccessToken();
+          if (accessToken != null && accessToken.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $accessToken';
+          }
+          logger.info("Request: ${options.uri}, Headers: ${options.headers}");
+          return handler.next(options);
+        },
+        onResponse: (response, handler) async {
+          logger.info("Response: ${response.data}");
+          return handler.next(response);
+        },
+        onError: (error, handler) async {
+          logger.severe("Error: $error");
+          return handler.next(error);
+        },
+      ),
+    );
 
-        // If there is an access token, add it to the headers
-        if (accessToken != null && accessToken.isNotEmpty) {
-          options.headers['Authorization'] = 'Bearer $accessToken';
-        }
-
-        logger.i("Request: ${options.uri}, Headers: ${options.headers}");
-        return handler.next(options); // Proceed with the request
-      },
-      onResponse: (response, handler) {
-        logger.i("Response: ${response.data}");
-        return handler.next(response); // Proceed with the response
-      },
-      onError: (error, handler) {
-        logger.e("Error: $error");
-        return handler.next(error); // Proceed with the error handling
-      },
-    ));
-
-    // Enable logging
-    if (enableNetworkLogs) {
+    // 3- Log interceptors
+    if (enableNetworkLog) {
       _dio.interceptors.add(LogInterceptor(responseBody: true, requestBody: true));
     }
   }
 
-  /// Refreshes the access token by sending the refresh token in the Authorization header
+  // 4- refreshAccessToken Method
   static Future<bool> refreshAccessToken() async {
-    // Retrieve refresh token from Hive storage
     String? refreshToken = await SharedPrefsManager.getRefreshToken();
     if (refreshToken == null || refreshToken.isEmpty) {
-      return false; // No refresh token available, cannot refresh
+      return false;
     }
-
     try {
-      final response = await _dio.post(
-        "/auth/refresh-token",
-        options: Options(headers: {
-          'Authorization': 'Bearer $refreshToken', // Send the refresh token in the Authorization header
-        }),
-      );
-
-      ResponseModel responseModel = ResponseModel.fromJson(
-  response.data, 
-  (data) => data,  //req 2 arg response map and data
-);
-
-
+      final response = await _dio.post('/auth/refresh-token',
+          options: Options(headers: {'Authorization': 'Bearer $refreshToken'}));
+      ResponseModel responseModel = ResponseModel.fromJson(response.data);
       if (responseModel.statusCode == 200) {
-        // Save new tokens in Hive
         await SharedPrefsManager.saveAccessToken(responseModel.data['access_token']);
         await SharedPrefsManager.saveRefreshToken(responseModel.data['refresh_token']);
-        return true; // Token refreshed successfully
+        return true;
       } else {
-        logger.e('Failed to refresh token: ${responseModel.message}');
-        return false; // Token refresh failed
+        logger.severe('Failed to refresh token: ${responseModel.message}');
+        return false;
       }
     } catch (e) {
-      logger.e('Error refreshing token: $e');
-      return false; // Token refresh failed due to an error
+      logger.severe('Error refreshing token: $e');
+      return false;
     }
   }
 
-  /// Generic method for handling API requests (GET, POST, PUT, DELETE)
+  // 5- request Method
   static Future<ResponseModel> request({
     required String url,
-    required String method, // "GET", "POST", "PUT", "DELETE"
+    required String method,
     dynamic data,
-    bool withToken = true, // Controls whether token injection is required
+    bool withToken = true,
   }) async {
     try {
-      // First attempt to make the request
       final response = await _makeRequest(url: url, method: method, data: data);
+      print('Request successful, data: ${response.data}');
       return response;
     } on DioError catch (error) {
-      // If token is expired (401 Unauthorized), attempt to refresh token
+      // Log full error details
+      print('DioError details: ${error.toString()}');
+      if (error.response != null) {
+        print('Error response data: ${error.response?.data}');
+        print('Error response headers: ${error.response?.headers}');
+        print('Error response status code: ${error.response?.statusCode}');
+      }
+
+      // Handle specific errors
       if (error.response?.statusCode == 401 && withToken) {
         bool tokenRefreshed = await refreshAccessToken();
         if (tokenRefreshed) {
-          // Retry the original request with the refreshed token
           return await _makeRequest(url: url, method: method, data: data);
         } else {
           return ResponseModel(
@@ -115,13 +114,82 @@ class ApiClient {
           );
         }
       } else {
-        return ResponseModel(statusCode: 500, message: 'Something went wrong');
+        return ResponseModel(
+          statusCode: error.response?.statusCode ?? 500,
+          message: error.response?.statusMessage ?? 'Something went wrong',
+        );
       }
     }
   }
 
-  /// Private method to perform the actual network request
+
+  // 5- _makeRequest method
   static Future<ResponseModel> _makeRequest({
+    required String url,
+    required String method,
+    dynamic data,
+  }) async {
+    try {
+      print('Making request to: $url');
+      final response = await _dio.request(
+        '$baseUrl$url',
+        data: data != null ? jsonEncode(data) : null,
+        options: Options(method: method),
+      );
+      print('Response received: ${response.data}');
+      return _handleResponse(response);
+    } catch (e) {
+      // Log full error details
+      if (e is DioError) {
+        print('DioError: ${e.message}');
+        if (e.response != null) {
+          print('Error response data: ${e.response?.data}');
+          print('Error response headers: ${e.response?.headers}');
+          print('Error response status code: ${e.response?.statusCode}');
+        } else {
+          print('Error occurred without response data');
+        }
+      } else {
+        print('Unexpected error: $e');
+      }
+      // Handle errors with a default response model
+      return ResponseModel(
+        statusCode: 500,
+        message: 'An unexpected error occurred.',
+      );
+    }
+  }
+
+
+  // 6- handleResponse Method
+  static ResponseModel _handleResponse(Response response) {
+    final data = response.data;
+    return ResponseModel(
+      statusCode: data['statusCode'],
+      message: data['message'],
+      data: data['data'],
+    );
+  }
+
+  // For no token requests
+  static Future<ResponseModel> requestForNoTokensApiReq({
+    required String url,
+    required String method,
+    dynamic data,
+  }) async {
+    try {
+      final response = await _makeRequestForNoTokens(url: url, method: method, data: data);
+      return response;
+    } on DioError catch (error) {
+      logger.severe('DioError: ${error.response?.data ?? error.message}');
+      return ResponseModel(
+        statusCode: error.response?.statusCode ?? 500,
+        message: error.response?.statusMessage ?? 'Something went wrong',
+      );
+    }
+  }
+
+  static Future<ResponseModel> _makeRequestForNoTokens({
     required String url,
     required String method,
     dynamic data,
@@ -130,24 +198,15 @@ class ApiClient {
       final response = await _dio.request(
         url,
         data: data != null ? jsonEncode(data) : null,
-        options: Options(method: method),
+        options: Options(
+          method: method,
+          headers: {'Content-Type': 'application/json'},
+        ),
       );
-
-      // Handle and parse response
       return _handleResponse(response);
     } catch (e) {
-      logger.e(e);
-      throw DioError(requestOptions: RequestOptions(path: url)); 
+      logger.severe('Error occurred during no-token request: $e');
+      throw DioError(requestOptions: RequestOptions(path: url));
     }
-  }
-
-  /// Handles and parses API responses into a ResponseModel
-  static ResponseModel _handleResponse(Response response) {
-    final data = response.data;
-    return ResponseModel(
-      statusCode: data['statusCode'],
-      message: data['message'],
-      data: data['data'],
-    );
   }
 }
