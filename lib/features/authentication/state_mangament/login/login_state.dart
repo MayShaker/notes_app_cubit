@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../../models/login_response_model.dart'; // Adjust the import according to your project structure
+import '../../models/login_response_model.dart'; 
 
 abstract class LoginState extends Equatable {
   @override

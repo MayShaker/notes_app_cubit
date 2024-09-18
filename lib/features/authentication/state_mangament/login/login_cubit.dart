@@ -13,13 +13,14 @@ class LoginCubit extends Cubit<LoginState> {
     try {
       final response = await loginRepository.login(email: email, password: password);
 
+      // Check for a successful response and ensure that data is not null
       if (response.statusCode == 200 && response.data != null) {
         emit(LoginSuccess(response.data!));
       } else {
-        emit(LoginFailure(response.message));
+        emit(LoginFailure(response.message ?? 'Unknown error occurred')); // Safeguard in case message is null
       }
     } catch (e) {
-      emit(LoginFailure('An unexpected error occurred'));
+      emit(LoginFailure('An unexpected error occurred')); // Optionally, you could log `e` to see details
     }
   }
 }
