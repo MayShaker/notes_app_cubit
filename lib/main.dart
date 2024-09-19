@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RepositoryProvider.value(
-      value: loginRepository, // Providing the LoginRepository globally
+      value: loginRepository, 
       child: MaterialApp(
         title: 'Notes App',
         theme: ThemeData(

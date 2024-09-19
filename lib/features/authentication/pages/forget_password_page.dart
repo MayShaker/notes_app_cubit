@@ -15,7 +15,7 @@ class ForgotPasswordPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: BlocProvider(
           create: (context) => ForgotPasswordCubit(
-            RepositoryProvider.of<ForgotPasswordRepository>(context), // Inject ForgotPasswordRepository
+            RepositoryProvider.of<ForgotPasswordRepository>(context),
           ),
           child: ForgotPasswordForm(),
         ),
@@ -47,7 +47,17 @@ class ForgotPasswordForm extends StatelessWidget {
           children: [
             TextField(
               controller: emailController,
-              decoration: InputDecoration(labelText: 'Email'),
+              decoration: InputDecoration(
+                labelText: 'Email',
+                labelStyle: TextStyle(color: Colors.white),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.2), // Transparent background
+                prefixIcon: Icon(Icons.email, color: Colors.white), // Icon for email
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              style: TextStyle(color: Colors.white), // White text color
               keyboardType: TextInputType.emailAddress,
             ),
             SizedBox(height: 16),
@@ -67,7 +77,10 @@ class ForgotPasswordForm extends StatelessWidget {
                   onPressed: () {
                     Navigator.pushNamed(context, '/login');
                   },
-                  child: Text('Back to Login'),
+                  child: Text(
+                    'Back to Login',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             ),
