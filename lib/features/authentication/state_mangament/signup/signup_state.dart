@@ -1,4 +1,3 @@
-
 import 'package:equatable/equatable.dart';
 
 import '../../models/signup_response_model.dart';
@@ -14,7 +13,14 @@ class SignUpSuccess extends SignUpState {
   SignUpSuccess(this.user);
 
   @override
-    List<Object> get props => [user];
+  List<Object> get props => [user];
+}
+class SignUpRequiresOtp extends SignUpState {
+  final SignupResponseModel user;
+  SignUpRequiresOtp(this.user);
+
+  @override
+  List<Object> get props => [user];
 }
 class SignUpError extends SignUpState {
   final String message;

@@ -22,7 +22,6 @@ class LoginResponseModel extends Equatable {
   @override
   List<Object?> get props => [statusCode, message, data];
 }
-
 class LoginData extends Equatable {
   final User user;
   final String accessToken;
@@ -45,7 +44,6 @@ class LoginData extends Equatable {
   @override
   List<Object?> get props => [user, accessToken, refreshToken];
 }
-
 class User extends Equatable {
   final String firstName;
   final String lastName;
@@ -71,3 +69,4 @@ class User extends Equatable {
   @override
   List<Object?> get props => [firstName, lastName, email, isVerified];
 }
+

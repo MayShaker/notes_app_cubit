@@ -15,9 +15,9 @@ class SignUpPage extends StatelessWidget {
       body: BlocConsumer<SignUpCubit, SignUpState>(
         listener: (context, state) {
           if (state is SignUpSuccess) {
-           //navigation
+            // Navigate to OTP page on successful sign-up
+            Navigator.pushReplacementNamed(context, '/otp', arguments: state.user.email);
           } else if (state is SignUpError) {
-            
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
@@ -112,6 +112,7 @@ class SignUpPage extends StatelessWidget {
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 16,
+                                        decoration: TextDecoration.underline,
                                       ),
                                     ),
                                   ),
