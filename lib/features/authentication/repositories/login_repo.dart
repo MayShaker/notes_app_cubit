@@ -12,10 +12,12 @@ class LoginRepository {
       final response = await ApiClient.request(
         url: '/auth/signin',
         method: 'POST',
-        data: LoginRequestModel(email: email, password: password).toJson(),
+        data: LoginRequestModel(
+          email: email, 
+          password: password).toJson(),
       );
 
-      // Parse the response using the ResponseModel with custom data parsing
+      
       var responseModel = ResponseModel<LoginResponseModel>.fromJson(
         response.toJson(),
         createData: (data) => LoginResponseModel.fromJson(data),

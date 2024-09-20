@@ -36,14 +36,18 @@ class LoginForm extends StatelessWidget {
 
     return BlocConsumer<LoginCubit, LoginState>(
       listener: (context, state) {
-        if (state is LoginSuccess) {
-          Navigator.pushNamed(context, '/home'); 
-        } else if (state is LoginFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.errorMessage)),
-          );
-        }
-      },
+  if (state is LoginSuccess) {
+    Navigator.pushReplacementNamed(context, '/home'); 
+  }/* else if (state is OtpRequired) {
+      Navigator.pushReplacementNamed(context, '/otp');
+  }*/
+  else if (state is LoginFailure) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(state.errorMessage)),
+    );
+  }
+},
+
       builder: (context, state) {
         return Stack(
           children: [

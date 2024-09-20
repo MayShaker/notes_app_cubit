@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'features/authentication/pages/forget_password_page.dart';
 import 'features/authentication/pages/login_page.dart';
 import 'features/authentication/pages/otp_page.dart';
 import 'features/authentication/pages/signup_page.dart';
 import 'features/authentication/repositories/login_repo.dart';
 import 'features/authentication/repositories/signup_repo.dart';
-import 'features/authentication/repositories/otp_repo.dart'; // Add import for OTPRepository
+import 'features/authentication/repositories/otp_repo.dart';
 import 'features/authentication/state_mangament/login/login_cubit.dart';
 import 'features/authentication/state_mangament/signup/signup_cubit.dart';
-import 'features/authentication/state_mangament/otp/otp_cubit.dart'; // Add import for OTPCubit
+import 'features/authentication/state_mangament/otp/otp_cubit.dart';
+import 'features/notes/pages/home_page.dart';
+import 'features/notes/repositories/create_note_repo.dart';
+import 'features/notes/repositories/get_note_repo.dart'; 
+import 'features/notes/statemanagement/get/get_cubit.dart'; 
 
 void main() {
   runApp(MyApp());
@@ -23,7 +26,8 @@ class MyApp extends StatelessWidget {
       providers: [
         RepositoryProvider(create: (context) => LoginRepository()),
         RepositoryProvider(create: (context) => UserRepository()),
-        RepositoryProvider(create: (context) => OTPRepository()), // Add OTPRepository
+        RepositoryProvider(create: (context) => OTPRepository()),
+        RepositoryProvider(create: (context) => GetNoteRepository()), 
       ],
       child: MultiBlocProvider(
         providers: [
@@ -42,19 +46,25 @@ class MyApp extends StatelessWidget {
               RepositoryProvider.of<OTPRepository>(context),
             ),
           ),
+          BlocProvider(
+            create: (context) => GetNotesCubit(
+              RepositoryProvider.of<GetNoteRepository>(context),
+            ),
+          ), 
         ],
         child: MaterialApp(
-          title: 'Your App Title',
+          title: 'Notes App',
           theme: ThemeData(
             primarySwatch: Colors.blue,
             visualDensity: VisualDensity.adaptivePlatformDensity,
           ),
           initialRoute: '/login',
           routes: {
+            '/home': (context) => HomePage(),
+            '/otp': (context) => OTPPage(email: ''),
             '/login': (context) => LoginPage(),
             '/signup': (context) => SignUpPage(),
             '/forgot-password': (context) => ForgotPasswordPage(),
-            '/otp': (context) => OTPPage(email: ''), // Adjust if needed
           },
         ),
       ),

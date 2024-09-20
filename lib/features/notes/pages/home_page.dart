@@ -14,6 +14,9 @@ class HomePage extends StatelessWidget {
           if (state is GetNotesLoading) {
             return Center(child: CircularProgressIndicator());
           } else if (state is GetNotesSuccess) {
+            if (state.notes.isEmpty) {
+              return Center(child: Text('No notes available'));
+            }
             return ListView.builder(
               itemCount: state.notes.length,
               itemBuilder: (context, index) {

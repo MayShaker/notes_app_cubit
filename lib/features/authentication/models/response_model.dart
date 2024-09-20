@@ -51,6 +51,10 @@ If createData is not provided, the data will simply be cast as T without any tra
       data: json['data'] != null ? createData(json['data']) : null,
     );
   }
+   @override
+  String toString() {
+    return 'ResponseModel(statusCode: $statusCode, message: $message, data: $data)';
+  }
 
   /// Converts the ResponseModel into a JSON-compatible map
   Map<String, dynamic> toJson({Map<String, dynamic> Function(T)? dataToJson}) {
