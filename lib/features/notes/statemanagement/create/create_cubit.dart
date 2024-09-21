@@ -19,14 +19,14 @@ class CreateNoteCubit extends Cubit<CreateNoteState> {
   }) async {
     emit(CreateNoteLoading());
     try {
-      // Create a CreateNoteRequest object
+      
       CreateNoteRequest request = CreateNoteRequest(
         category: category,
         title: title,
         text: text,
       );
       
-      // Pass the request object to the repository
+      
       Note createdNote = await notesRepository.createNote(request);
       emit(CreateNoteSuccess("Note created successfully"));
     } catch (e) {

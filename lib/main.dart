@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart'; 
-
+import 'package:hive_flutter/hive_flutter.dart';
 import 'core/network/api_client.dart';
 import 'features/authentication/pages/forget_password_page.dart';
 import 'features/authentication/pages/login_page.dart';
@@ -16,18 +15,19 @@ import 'features/authentication/state_mangament/otp/otp_cubit.dart';
 import 'features/authentication/state_mangament/signup/signup_cubit.dart';
 import 'features/notes/pages/home_page.dart';
 import 'features/notes/repositories/create_note_repo.dart';
+import 'features/notes/repositories/delete_rep.dart';
 import 'features/notes/repositories/get_note_repo.dart';
-import 'features/notes/statemanagement/get/get_cubit.dart'; 
+import 'features/notes/statemanagement/delete/delte_cubit.dart';
+import 'features/notes/statemanagement/get/get_cubit.dart';
+
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); 
-  await Hive.initFlutter(); 
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
 
   await Hive.openBox('authBox').catchError((error) {
     print('Error opening Hive box: $error');
   });
-
-  //ApiClient.initDio(); 
 
   runApp(MyApp());
 }
@@ -40,7 +40,8 @@ class MyApp extends StatelessWidget {
         RepositoryProvider(create: (context) => LoginRepository()),
         RepositoryProvider(create: (context) => UserRepository()),
         RepositoryProvider(create: (context) => OTPRepository()),
-        RepositoryProvider(create: (context) => GetNoteRepository()), 
+        RepositoryProvider(create: (context) => GetNoteRepository()),
+        RepositoryProvider(create: (context) => DeleteNoteRepository()), 
       ],
       child: MultiBlocProvider(
         providers: [
@@ -62,6 +63,11 @@ class MyApp extends StatelessWidget {
           BlocProvider(
             create: (context) => GetNotesCubit(
               RepositoryProvider.of<GetNoteRepository>(context),
+            ),
+          ),
+          BlocProvider(
+            create: (context) => DeleteNoteCubit(
+              RepositoryProvider.of<DeleteNoteRepository>(context),
             ),
           ), 
         ],
