@@ -9,8 +9,8 @@ class CreateNoteRepository {
 
   Future<Note> createNote(CreateNoteRequest request) async {
     final response = await ApiClient.request(
-      url: '/notes',
-      method: 'POST', // Specify the HTTP method as POST
+      url: '/notes/create-note',
+      method: 'POST', 
       data: request.toJson(),
     );
     

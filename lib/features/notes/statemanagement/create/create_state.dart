@@ -2,7 +2,7 @@
 
 import 'package:equatable/equatable.dart';
 
-// Abstract base class for all note creation states
+
 abstract class CreateNoteState extends Equatable {
   @override
   List<Object?> get props => [];
